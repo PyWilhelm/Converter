@@ -1,3 +1,10 @@
 eclipse.preferences.version=1
-encoding/SDFExtension.py=utf-8
+encoding//converter/SDFExtension.py=utf-8
+encoding//converter/__init__.py=utf-8
+encoding//converter/load_file.py=utf-8
+encoding//converter/save_file.py=utf-8
+encoding//converter/validater.py=utf-8
+encoding//gui/__init__.py=utf-8
+encoding//gui/gui_design.py=utf-8
+encoding//sdf/__init__.py=utf-8
 encoding/test.py=utf-8

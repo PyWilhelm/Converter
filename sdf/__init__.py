@@ -9,7 +9,7 @@ __version__ = '0.1.0'
 class _StructuralElement(object):
     """ Base class for SDF Groups and Datasets  """
     
-    def __init__(self, name, comment=None, attributes=dict()):
+    def __init__(self, name, comment='', attributes=dict()):
         self.name = name
         self.comment = comment
         self.attributes = attributes
@@ -17,7 +17,7 @@ class _StructuralElement(object):
 class Group(_StructuralElement):
     """ SDF Group """
     
-    def __init__(self, name, comment=None, attributes=dict(), datasets=[]):
+    def __init__(self, name, comment='', attributes=dict(), datasets=[]):
         _StructuralElement.__init__(self, name, comment, attributes)
         self.datasets = datasets
     
@@ -25,14 +25,14 @@ class Dataset(_StructuralElement):
     """ SDF Dataset """
     
     def __init__(self, name,
-                 comment=None,
+                 comment='',
                  attributes=dict(),
                  data=np.empty(0),
-                 display_name=None,
-                 scale_name=None,
-                 quantity=None,
-                 unit=None,
-                 display_unit=None,
+                 display_name='',
+                 scale_name='',
+                 quantity='',
+                 unit='',
+                 display_unit='',
                  is_scale=False,
                  scales=[]
                  ):
@@ -174,7 +174,7 @@ def load(filename, datasetname):
         
         return ds
     
-def load_all(filename):
+def load_all(filename, set_scale=True):
     ds_list = []
     with h5py.File(filename, 'r') as f:
         names = f.keys()
@@ -189,12 +189,17 @@ def load_all(filename):
                     s.scale_name = dsobj.dims[ri].keys()[0]
                     ds.scales[ri] = s
             ds_list.append(ds)
+
     return_ds = []
     for ds in ds_list:
-        scale_names = [scale.name for scale in ds.scales if scale != None]
-        scales = [ds_ for ds_ in ds_list if ds_.name in scale_names]
+        if set_scale == True:
+            scale_names = [scale.name for scale in ds.scales if scale != None]
+            scales = [ds_ for ds_ in ds_list if ds_.name in scale_names]
+        else:
+            scales = []
         ds.scales = scales
         return_ds.append(ds)
+        
     return return_ds
             
     
@@ -203,11 +208,11 @@ def load_all(filename):
 def save(filename, group):
     with h5py.File(filename, 'w') as f:
         if(group.comment != None):
-            f.attrs['COMMENT'] = np.string_(group.comment)
+            f.attrs['COMMENT'] = np.string_(group.comment.encode('utf8'))
         
         for key, value in group.attributes.items():
             if type(value) is str:
-                value = np.string_(value)   
+                value = np.string_(value.encode('utf8'))   
             f.attrs[key] = value
         
         for ds in group.datasets:
@@ -219,19 +224,19 @@ def _write_dataset(f, ds):
     dsobj = f[ds.name]
     
     if ds.comment:
-        dsobj.attrs['COMMENT'] = np.string_(ds.comment)
+        dsobj.attrs['COMMENT'] = np.string_(ds.comment.encode('utf-8'))
         
     if ds._display_name:
-        dsobj.attrs['DISPLAY_NAME'] = np.string_(ds.display_name)
+        dsobj.attrs['DISPLAY_NAME'] = np.string_(ds.display_name.encode('utf-8'))
     
     if ds.quantity:
-        dsobj.attrs['QUANTITY'] = np.string_(ds.quantity)
+        dsobj.attrs['QUANTITY'] = np.string_(ds.quantity.encode('utf-8'))
     
     if ds.unit:
-        dsobj.attrs['UNIT'] = np.string_(ds.unit)
+        dsobj.attrs['UNIT'] = np.string_(ds.unit.encode('utf-8'))
     
     if ds.display_unit != ds.unit:
-        dsobj.attrs['DISPLAY_UNIT'] = np.string_(ds.display_unit)
+        dsobj.attrs['DISPLAY_UNIT'] = np.string_(ds.display_unit.encode('utf-8'))
        
     for ri in range(len(ds.scales)):
         s = ds.scales[ri]
