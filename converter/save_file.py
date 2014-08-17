@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sdf, types, copy, xlrd, json, traceback
+import sdf, lib
 from scipy.io import savemat
 import xlsxwriter
 def save_to_sdf(dataset_list, output_filename):
@@ -13,35 +13,19 @@ def save_to_mat(dataset_list, output_filename):
     
 def save_to_xlsx(dataset_list, output_filename):
     names = [ds.name for ds in dataset_list]
-    prefix_list = reduce(__get_prefix, names, [])
-    print prefix_list
+    prefix_list = reduce(lib.get_prefix, names, [])
     dataset_of_prefix = {p: [ds for ds in dataset_list if ds.name.find(p)>=0]for p in prefix_list}
-    print dataset_of_prefix
     workbook = xlsxwriter.Workbook(output_filename)
-    for key in dataset_of_prefix.keys():
+    keys = ['time'] + sorted([key for key in dataset_of_prefix.keys() if key != 'time'])
+    for key in keys:
         worksheet = workbook.add_worksheet(key)
-        __write_to_sheet(workbook, worksheet, dataset_of_prefix[key])
+        try:
+            __write_to_sheet(workbook, worksheet, dataset_of_prefix[key])
+        except:
+            pass
+            
     workbook.close()
-    
-def __get_prefix(prefix_list, name):
-    return_list = []
-    find = False
-    for prefix in prefix_list:
-        for i in range(len(prefix)):
-            if prefix[i] != name[i]:
-                prefix_fix = prefix[:i]
-                break
-        else:
-            prefix_fix = prefix
-        prefix_fix = prefix_fix.replace('_', '')
-        if len(prefix_fix) > 1 :
-            find = True
-            return_list.append(prefix_fix)
-        else:
-            return_list.append(prefix)
-    if find == False:
-        return_list.append(name)
-    return return_list        
+         
     
 def __write_to_sheet(workbook, worksheet, dataset_list):
     f1 = __get_header_format(workbook)
@@ -53,6 +37,7 @@ def __write_to_sheet(workbook, worksheet, dataset_list):
     #TODO: extract all the names which share a same prefix into a list
     # write the data in a sheet
     for i, ds in enumerate(dataset_list):
+        print ds
         worksheet.write(0, i+1, ds.name, f2)
         worksheet.write(1, i+1, ds.quantity, f2)
         worksheet.write(2, i+1, ds.unit, f2)

@@ -4,7 +4,7 @@
 #
 # Copyright 2013-2014, John McNamara, jmcnamara@cpan.org
 #
-from gui.converterGUI import Ui_Dialog
+from gui.templateGUI import Ui_Dialog
 import sys
 from PyQt4 import QtCore, QtGui
 app = QtGui.QApplication(sys.argv)

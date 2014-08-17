@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+import lib
+
 class Validater(object):    
     
     def __init__(self):
@@ -9,9 +11,9 @@ class Validater(object):
         self.__list.append((name, error_type, message))
         
     def __str__(self):
-        string = ''
+        string = u''
         for item in self.__list:
-            string += item[0] + item[1] + item[2] + '\n'
+            string += item[0] + item[1] + item[2] + u'\n'
         return string
         
     
@@ -26,7 +28,7 @@ class Validater(object):
         
         keys_without_time = [key for key in sdf_ext.keys() if key!='time']
             
-        prefix_list = reduce(Validater.__get_prefix, [key for key in keys_without_time], [])
+        prefix_list = reduce(lib.get_prefix, [key for key in keys_without_time], [])
         # There must be an underscore symbol between the component name (prefix) and the variable name
         for key in keys_without_time:
             if key.find('_') < 0:
@@ -40,7 +42,6 @@ class Validater(object):
                                   'underscore symbol in error position')
         # Component names must be ended with a number and the number should start from 1
         prefix_without_number = []
-        print prefix_list
         for prefix in prefix_list:
             lastchar = prefix[-1]
             try: 
@@ -80,26 +81,16 @@ class Validater(object):
     def validate_semantic(sdf_ext):   
         validater = Validater()
         schema = sdf_ext.get_schema()
-        schema_keys_without_time = [key for key in schema.keys() if key!='time']
-        schema_prefix_list = reduce(Validater.__get_prefix, [key for key in schema_keys_without_time], [])
-        muster_dict = {prefix: [schema[key] 
-                                for key in schema.keys() 
-                                if key.find(prefix)==0] 
-                       for prefix in schema_prefix_list}
-        first_muster_dict = {key: muster_dict[key+'1'] for key in set([i[0:-1] for i in muster_dict.keys()])}
+        muster_dict = lib.get_dataset_dict_by_prefix(schema)
+        first_muster_dict = lib.get_first_muster_dict(muster_dict)
 
-        data_keys_without_time = [key for key in sdf_ext.keys() if key!='time']
-        data_prefix_list = reduce(Validater.__get_prefix, [key for key in data_keys_without_time], [])
-        data_dict_by_prefix = {prefix: [sdf_ext[key] 
-                                for key in sdf_ext.keys() 
-                                if key.find(prefix)==0] 
-                               for prefix in data_prefix_list}
+        data_dict_by_prefix = lib.get_dataset_dict_by_prefix(sdf_ext)
 
         # The component with the identical name must have identical structure of variables.
         for key in data_dict_by_prefix.keys():
-            data_names_by_prefix = [ds.name for ds in data_dict_by_prefix[key]]
+            data_names_by_prefix = sorted([ds.name for ds in data_dict_by_prefix[key]])
             if key in muster_dict.keys():
-                muster_names_by_prefix = [ds.name for ds in muster_dict[key]]
+                muster_names_by_prefix = sorted([ds.name for ds in muster_dict[key]])
                 if data_names_by_prefix != muster_names_by_prefix:
                     validater.add(key, 
                                   ' component structure error ', 
@@ -110,7 +101,7 @@ class Validater(object):
                     validater.add(key, 
                                   ' component name not found ', 
                                   'component name not found, but a similar component to validate')
-                    muster_names_by_prefix = [key+ds.name[len(key):] for ds in first_muster_dict[key[0:-1]]]
+                    muster_names_by_prefix = sorted([key+ds.name[len(key):] for ds in first_muster_dict[key[0:-1]]])
                     if data_names_by_prefix != muster_names_by_prefix:
                         validater.add(key, 
                                       ' component structure error ', 
@@ -131,7 +122,7 @@ class Validater(object):
                     validater.add(key, ' quantity not validated ', 
                                   sdf_ext[key].comment + ', schema:' + schema[key].quantity)
             else:
-                prefix = [p for p in data_prefix_list if key.find(p)==0][0]
+                prefix = [p for p in data_dict_by_prefix.keys() if key.find(p)==0][0]
                 replace_key = prefix[0:-1]
                 if replace_key in first_muster_dict.keys():
                     muster_ds = [ds 
@@ -156,23 +147,3 @@ class Validater(object):
             
                 
     
-    @staticmethod
-    def __get_prefix(prefix_list, name):
-        return_list = []
-        find = False
-        for prefix in prefix_list:
-            for i in range(len(prefix)):
-                if prefix[i] != name[i]:
-                    prefix_fix = prefix[:i]
-                    break
-            else:
-                prefix_fix = prefix
-            prefix_fix = prefix_fix.replace('_', '')
-            if len(prefix_fix) > 1 :
-                find = True
-                return_list.append(prefix_fix)
-            else:
-                return_list.append(prefix)
-        if find == False:
-            return_list.append(name)
-        return return_list 

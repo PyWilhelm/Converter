@@ -1,1 +1,1 @@
-python "C:\WinPython-32bit-2.7.6.4\python-2.7.6\Lib\site-packages\PyQt4\uic\pyuic.py" -o gui_design.py gui.ui
+python "C:\WinPython-32bit-2.7.6.4\python-2.7.6\Lib\site-packages\PyQt4\uic\pyuic.py" -o temp_gui_design.py main.ui

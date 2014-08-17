@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import sdf, os, sys
+import sys, lib, copy
 from converter.load_file import load_from_sdf, load_from_mat, load_from_xlsx
 from converter.save_file import save_to_sdf, save_to_mat, save_to_xlsx
 from validater import Validater
@@ -41,7 +41,50 @@ class SDFExtension(object):
         else:
             self.__dataset_list = dataset_list
 
+    def set_scale(self):
+        time_ds = self.__getitem__('time')
+        for ds in self.__dataset_list:
+            if ds.name != 'time':
+                ds.scales = [time_ds]
         
+    def set_schema_data(self, schema_sdf_ext):
+        self.__schema_data = schema_sdf_ext
+        
+    def validate(self):
+        report_syntax = self.__syntax_validate()
+        report_semantic = self.__semantic_validate()
+        self.set_scale()
+        return report_syntax, report_semantic
+        
+    def save_to_file(self, filename, file_format):
+        save_function = self.__get_save_function(file_format)
+        save_successful = save_function(self.__dataset_list, filename)
+        return save_successful  
+    
+    def get_first_muster_list(self):
+        if self.__is_schema == True:
+            first_muster_dict = lib.get_first_muster_dict(lib.get_dataset_dict_by_prefix(self))
+            return first_muster_dict.keys()
+        else:
+            raise Exception('the function only for schema data')
+        
+    def save_template_to_file(self, outputfile, file_format,  muster_dict):
+        def rename(ds, key, newkey): 
+            ds.name = ds.name.replace(key, newkey)
+        sdf_ext = SDFExtension()
+        first_muster_dict = lib.get_first_muster_dict(lib.get_dataset_dict_by_prefix(self))
+        dataset_list = []
+        for key in first_muster_dict.keys():
+            for i in range(1, muster_dict[key]+1):
+                temp_list = copy.deepcopy(first_muster_dict[key])
+                [rename(ds, key+'1', key+str(i)) for ds in temp_list]
+                dataset_list.extend(temp_list)
+        dataset_list.append(self.__getitem__('time'))
+        sdf_ext._set_dataset_list(dataset_list)
+        return sdf_ext.save_to_file(outputfile, file_format)
+        
+    def _set_dataset_list(self, ds_list):
+        self.__dataset_list = ds_list
         
     def __clear_data(self, dataset_list):
         for ds in dataset_list:
@@ -64,34 +107,18 @@ class SDFExtension(object):
         elif format_string.find('mat') >= 0:
             return save_to_mat
         
-    def set_scale(self):
-        time_ds = self.__getitem__('time')
-        for ds in self.__dataset_list:
-            if ds.name != 'time':
-                ds.scales = [time_ds]
-        
-    def validate(self):
-        report_syntax = self.__syntax_validate()
-        report_semantic = self.__semantic_validate()
-        return report_syntax, report_semantic
-        
-    def save_to_file(self, filename, file_format):
-        save_function = self.__get_save_function(file_format)
-        save_successful = save_function(self.__dataset_list, filename)
-        return save_successful
+
     
     def __syntax_validate(self):
         vali = Validater.validate_syntax(self)
-        print str(vali)
+        return vali
     
     def __semantic_validate(self):
         vali = Validater.validate_semantic(self)
-        print str(vali)
+        return vali
     
     def __save(self, filename, file_format):
         return True
         
-    
-    def set_schema_data(self, schema_sdf_ext):
-        self.__schema_data = schema_sdf_ext
+
         
