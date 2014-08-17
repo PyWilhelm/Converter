@@ -23,7 +23,7 @@ class Ui_Dialog(QtGui.QWizard):
         super(Ui_Dialog, self).__init__()
         self.font = QtGui.QFont()
         self.font.setFamily(_fromUtf8("Sitka Heading"))
-        self.font.setPointSize(11)
+        self.font.setPointSize(13)
         self.setFont(self.font)
         self.queue = multiprocessing.Queue()
         self.pages = []
@@ -215,7 +215,7 @@ class Ui_Dialog(QtGui.QWizard):
         QtCore.QMetaObject.connectSlotsByName(self)
 
     def retranslateUi(self):
-        self.setWindowTitle(_translate("MainWindow", "MainWindow", None))
+        self.setWindowTitle(_translate("MainWindow", "Template Maker", None))
         self.schema_btn.setText(_translate("MainWindow", "...", None))
         self.label_3.setText(_translate("MainWindow", "target format", None))
         self.label_4.setText(_translate("MainWindow", "output file", None))

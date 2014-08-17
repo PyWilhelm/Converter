@@ -111,14 +111,16 @@ class SDFExtension(object):
     
     def __syntax_validate(self):
         vali = Validater.validate_syntax(self)
+        print 'syntax:'
+        print vali
         return vali
     
     def __semantic_validate(self):
         vali = Validater.validate_semantic(self)
+        print 'semantic:'
+        print vali
         return vali
     
-    def __save(self, filename, file_format):
-        return True
         
 
         
