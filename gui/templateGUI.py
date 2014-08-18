@@ -24,6 +24,9 @@ class Ui_Dialog(QtGui.QWizard):
         self.font = QtGui.QFont()
         self.font.setFamily(_fromUtf8("Sitka Heading"))
         self.font.setPointSize(13)
+        self.font_text = QtGui.QFont()
+        self.font_text.setFamily(_fromUtf8("Sitka Heading"))
+        self.font_text.setPointSize(11)
         self.setFont(self.font)
         self.queue = multiprocessing.Queue()
         self.pages = []
@@ -71,19 +74,23 @@ class Ui_Dialog(QtGui.QWizard):
                 #formLayout.setMargin(0)
                 label = QtGui.QLabel(formLayoutWidget)
                 label.setFont(self.font)
-                label.setText('setting component number')
+                label.setText('Setting Component Number')
                 formLayout.setWidget(0, QtGui.QFormLayout.LabelRole, label)
+                splitter = QtGui.QSpacerItem(288, 40, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+                formLayout.setItem(1, QtGui.QFormLayout.LabelRole, splitter)
                 for i, component_name in enumerate(muster_list):
                     print component_name
                     label = QtGui.QLabel(formLayoutWidget)
                     label.setFont(self.font)
-                    label.setText(component_name)
-                    formLayout.setWidget(i+1, QtGui.QFormLayout.LabelRole, label)
-                    input_el = QtGui.QLineEdit(formLayoutWidget)
-                    input_el.setFont(self.font)
-                    input_el.setText('1')
-                    input_el.setInputMask('D')
-                    formLayout.setWidget(i+1, QtGui.QFormLayout.FieldRole, input_el)
+                    label.setText(component_name.upper())
+                    formLayout.setWidget(2*i+2, QtGui.QFormLayout.LabelRole, label)
+                    spinBox = QtGui.QSpinBox(formLayoutWidget)
+                    spinBox.setMinimum(1)
+                    spinBox.setMaximum(10)
+                    formLayout.setWidget(2*i+2, QtGui.QFormLayout.FieldRole, spinBox)
+                    
+                    splitter = QtGui.QSpacerItem(288, 20, QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
+                    formLayout.setItem(2*i+3, QtGui.QFormLayout.LabelRole, splitter)
 
                 self.pages.append(self.addPage(page))
                 self.pages.append(self.addPage(final_page))
@@ -92,19 +99,8 @@ class Ui_Dialog(QtGui.QWizard):
                 muster_list = []
                 for c in self.page(self.currentId()).children():
                     for cc in c.children():
-                        if isinstance(cc, QtGui.QLineEdit):
-                            try:
-                                muster_list.append(int(str(cc.text())))
-                            except:
-                                import traceback
-                                print traceback.format_exc()
-                                mb = QtGui.QMessageBox(QtGui.QMessageBox.Critical, 
-                                                       'Error', 
-                                                       '<font size=5 color=red > input must be integer </font>', 
-                                                       buttons=QtGui.QMessageBox.Ok)
-                                mb.show()
-                                mb.exec_()
-                                return False
+                        if isinstance(cc, QtGui.QSpinBox):
+                            muster_list.append(cc.value())
                 try:
                     converter.template_generate(self.sdf_ext_schema, str(self.output_el.text()), muster_list)
                 except:
@@ -120,8 +116,9 @@ class Ui_Dialog(QtGui.QWizard):
         
     def setupUi(self):
         self.setObjectName(_fromUtf8("Dialog"))
-        self.resize(800, 600)
+        self.setFixedSize(800, 600)
         font = self.font
+        font_text = self.font_text
         page = QtGui.QWizardPage(self)
         self.centralwidget = QtGui.QWidget(page)
         self.centralwidget.setObjectName(_fromUtf8("centralwidget"))
@@ -135,7 +132,7 @@ class Ui_Dialog(QtGui.QWizard):
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         
         self.schema_el = QtGui.QLineEdit(self.gridLayoutWidget)
-        self.schema_el.setFont(font)
+        self.schema_el.setFont(font_text)
         self.schema_el.setObjectName(_fromUtf8("schema_el"))
         self.gridLayout.addWidget(self.schema_el, 0, 2, 1, 1)
         
@@ -155,7 +152,7 @@ class Ui_Dialog(QtGui.QWizard):
         self.gridLayout.addWidget(self.label_4, 2, 0, 1, 1)
         
         self.output_el = QtGui.QLineEdit(self.gridLayoutWidget)
-        self.output_el.setFont(font)
+        self.output_el.setFont(font_text)
         self.output_el.setObjectName(_fromUtf8("output_el"))
         self.gridLayout.addWidget(self.output_el, 2, 2, 1, 1)
         
@@ -217,11 +214,11 @@ class Ui_Dialog(QtGui.QWizard):
     def retranslateUi(self):
         self.setWindowTitle(_translate("MainWindow", "Template Maker", None))
         self.schema_btn.setText(_translate("MainWindow", "...", None))
-        self.label_3.setText(_translate("MainWindow", "target format", None))
-        self.label_4.setText(_translate("MainWindow", "output file", None))
+        self.label_3.setText(_translate("MainWindow", "Target Format", None))
+        self.label_4.setText(_translate("MainWindow", "Output File", None))
         self.output_btn.setText(_translate("MainWindow", "...", None))
-        self.label_2.setText(_translate("MainWindow", "schema file", None))
-        self.label_info.setText(_translate("MainWindow", "Convert Infomation: ", None))
+        self.label_2.setText(_translate("MainWindow", "Schema File", None))
+        self.label_info.setText(_translate("MainWindow", "Convert Information: ", None))
     
             
 
@@ -265,8 +262,9 @@ class OpenExplorerButton(QtGui.QPushButton):
         
     def mousePressEvent(self, event):
         folder = os.path.dirname(str(self.binding.text()))
+        folder = folder.replace('/', os.sep)
         print 'explorer /select "%s"' % folder
-        subprocess.Popen('explorer /select "%s"' % folder, shell=True)
+        os.popen(r'explorer "%s"' %folder)
         
 class SelectCB(QtGui.QComboBox):
     def __init__(self, parent, binding):

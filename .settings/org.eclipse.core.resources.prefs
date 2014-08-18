@@ -7,6 +7,7 @@ encoding//converter/save_file.py=utf-8
 encoding//converter/validater.py=utf-8
 encoding//gui/__init__.py=utf-8
 encoding//gui/converterGUI.py=utf-8
+encoding//gui/temp_gui_design.py=utf-8
 encoding//gui/templateGUI.py=utf-8
 encoding//sdf/__init__.py=utf-8
 encoding/run.py=utf-8

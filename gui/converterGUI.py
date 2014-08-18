@@ -27,10 +27,13 @@ class Ui_Dialog(QtGui.QWizard):
     
     def __init__(self):
         super(Ui_Dialog, self).__init__()
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Sitka Heading"))
-        font.setPointSize(11)
-        self.setFont(font)
+        self.font = QtGui.QFont()
+        self.font.setFamily(_fromUtf8("Sitka Heading"))
+        self.font.setPointSize(13)
+        self.font_text = QtGui.QFont()
+        self.font_text.setFamily(_fromUtf8("Sitka Heading"))
+        self.font_text.setPointSize(11)
+        self.setFont(self.font)
         self.queue = multiprocessing.Queue()
         self.page1 = QtGui.QWizardPage(self)
         self.page2 = QtGui.QWizardPage(self)
@@ -67,14 +70,13 @@ class Ui_Dialog(QtGui.QWizard):
         
     def setupUi(self):
         self.setObjectName(_fromUtf8("Dialog"))
-        self.resize(800, 600)
+        self.setFixedSize(800, 600)
         
         
         self.gridLayoutWidget = QtGui.QWidget(self.page1)
         self.gridLayoutWidget.setGeometry(QtCore.QRect(90, 70, 550, 350))
-        font = QtGui.QFont()
-        font.setFamily(_fromUtf8("Sitka Heading"))
-        font.setPointSize(11)
+        font = self.font
+        font_text = self.font_text
         self.gridLayoutWidget.setFont(font)
         self.gridLayoutWidget.setObjectName(_fromUtf8("gridLayoutWidget"))
         self.gridLayout = QtGui.QGridLayout(self.gridLayoutWidget)
@@ -82,7 +84,7 @@ class Ui_Dialog(QtGui.QWizard):
         self.gridLayout.setObjectName(_fromUtf8("gridLayout"))
         
         self.schema_el = QtGui.QLineEdit(self.gridLayoutWidget)
-        self.schema_el.setFont(font)
+        self.schema_el.setFont(font_text)
         self.schema_el.setObjectName(_fromUtf8("schema_el"))
         self.gridLayout.addWidget(self.schema_el, 1, 2, 1, 1)
         
@@ -92,7 +94,7 @@ class Ui_Dialog(QtGui.QWizard):
         self.gridLayout.addWidget(self.schema_btn, 1, 3, 1, 1)
 
         self.input_el = QtGui.QLineEdit(self.gridLayoutWidget)
-        self.input_el.setFont(font)
+        self.input_el.setFont(font_text)
         self.input_el.setObjectName(_fromUtf8("input_el"))
         self.gridLayout.addWidget(self.input_el, 0, 2, 1, 1)
         
@@ -119,7 +121,7 @@ class Ui_Dialog(QtGui.QWizard):
         self.gridLayout.addWidget(self.label_4, 3, 0, 1, 1)
         
         self.output_el = QtGui.QLineEdit(self.gridLayoutWidget)
-        self.output_el.setFont(font)
+        self.output_el.setFont(font_text)
         self.output_el.setObjectName(_fromUtf8("output_el"))
         self.gridLayout.addWidget(self.output_el, 3, 2, 1, 1)
         
@@ -178,13 +180,13 @@ class Ui_Dialog(QtGui.QWizard):
     def retranslateUi(self):
         self.setWindowTitle(_translate("MainWindow", "Cycle Converter", None))
         self.schema_btn.setText(_translate("MainWindow", "...", None))
-        self.label.setText(_translate("MainWindow", "input file", None))
+        self.label.setText(_translate("MainWindow", "Input File", None))
         self.input_btn.setText(_translate("MainWindow", "...", None))
-        self.label_3.setText(_translate("MainWindow", "target format", None))
-        self.label_4.setText(_translate("MainWindow", "output file", None))
+        self.label_3.setText(_translate("MainWindow", "Target Format", None))
+        self.label_4.setText(_translate("MainWindow", "Output File", None))
         self.output_btn.setText(_translate("MainWindow", "...", None))
-        self.label_2.setText(_translate("MainWindow", "schema file", None))
-        self.label_info.setText(_translate("MainWindow", "Convert Infomation: ", None))
+        self.label_2.setText(_translate("MainWindow", "Schema File", None))
+        self.label_info.setText(_translate("MainWindow", "Convert Information: ", None))
     
 
 class OpenFileButton(QtGui.QToolButton):
@@ -225,8 +227,9 @@ class OpenExplorerButton(QtGui.QPushButton):
         
     def mousePressEvent(self, event):
         folder = os.path.dirname(str(self.binding.text()))
-        print 'explorer /select "%s"' % folder
-        subprocess.Popen('explorer /select "%s"' % folder, shell=True)
+        folder = folder.replace('/', os.sep)
+        print 'explorer "%s"' % folder
+        os.popen(r'explorer "%s"' %folder)
         
 class SelectCB(QtGui.QComboBox):
     def __init__(self, parent, binding):
